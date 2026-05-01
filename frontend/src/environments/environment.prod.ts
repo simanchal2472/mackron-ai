@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://mackron-ai-api.onrender.com/api'
+  apiUrl: 'https://mackron-ai.onrender.com/api'
 };
