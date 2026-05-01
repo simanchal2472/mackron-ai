@@ -164,6 +164,8 @@ public class TestEngineService {
             statusStore.put(testId, "ERROR");
             sendEvent(testId, "error", Map.of("message", e.getMessage()));
             completeEmitter(testId);
+        } finally {
+            playwrightRunner.closeSharedBrowser();
         }
     }
 

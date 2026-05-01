@@ -23,6 +23,7 @@ public class PlaywrightRunnerService {
 
     private final PlaywrightConfig config;
     private Playwright playwright;
+    private Browser sharedBrowser;
 
     public PlaywrightRunnerService(PlaywrightConfig config) {
         this.config = config;
@@ -35,8 +36,26 @@ public class PlaywrightRunnerService {
         return playwright;
     }
 
+    private synchronized Browser getSharedBrowser() {
+        if (sharedBrowser == null || !sharedBrowser.isConnected()) {
+            if (sharedBrowser != null) {
+                try { sharedBrowser.close(); } catch (Exception ignored) {}
+            }
+            sharedBrowser = launchBrowser();
+        }
+        return sharedBrowser;
+    }
+
+    public synchronized void closeSharedBrowser() {
+        if (sharedBrowser != null) {
+            try { sharedBrowser.close(); } catch (Exception ignored) {}
+            sharedBrowser = null;
+        }
+    }
+
     @PreDestroy
     public void cleanup() {
+        closeSharedBrowser();
         if (playwright != null) {
             playwright.close();
         }
@@ -44,12 +63,13 @@ public class PlaywrightRunnerService {
 
     public List<PageElement> crawlPageElements(String url) {
         List<PageElement> elements = new ArrayList<>();
-        try (Browser browser = launchBrowser();
-             BrowserContext context = browser.newContext()) {
+        BrowserContext context = null;
+        try {
+            context = getSharedBrowser().newContext();
             Page page = context.newPage();
             page.setDefaultTimeout(config.getTimeout());
             page.navigate(url);
-            page.waitForLoadState(LoadState.NETWORKIDLE);
+            page.waitForLoadState(LoadState.DOMCONTENTLOADED);
 
             elements.addAll(extractElements(page, "input"));
             elements.addAll(extractElements(page, "button"));
@@ -58,6 +78,10 @@ public class PlaywrightRunnerService {
             elements.addAll(extractElements(page, "a"));
         } catch (Exception e) {
             log.error("Failed to crawl page elements from {}: {}", url, e.getMessage());
+        } finally {
+            if (context != null) {
+                try { context.close(); } catch (Exception ignored) {}
+            }
         }
         return elements;
     }
@@ -68,8 +92,9 @@ public class PlaywrightRunnerService {
         long scenarioStart = System.currentTimeMillis();
         scenario.setStatus(TestStatus.RUNNING);
 
-        try (Browser browser = launchBrowser();
-             BrowserContext context = browser.newContext()) {
+        BrowserContext context = null;
+        try {
+            context = getSharedBrowser().newContext();
             Page page = context.newPage();
             page.setDefaultTimeout(config.getTimeout());
 
@@ -105,6 +130,10 @@ public class PlaywrightRunnerService {
             log.error("Scenario '{}' failed: {}", scenario.getName(), e.getMessage());
             scenario.setStatus(TestStatus.ERROR);
             scenario.setErrorMessage(e.getMessage());
+        } finally {
+            if (context != null) {
+                try { context.close(); } catch (Exception ignored) {}
+            }
         }
 
         scenario.setDurationMs(System.currentTimeMillis() - scenarioStart);
@@ -229,7 +258,25 @@ public class PlaywrightRunnerService {
             case "webkit" -> getPlaywright().webkit();
             default -> getPlaywright().chromium();
         };
-        return browserType.launch(new BrowserType.LaunchOptions().setHeadless(config.isHeadless()));
+        List<String> chromiumArgs = List.of(
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+                "--disable-dev-shm-usage",
+                "--disable-gpu",
+                "--disable-extensions",
+                "--disable-background-networking",
+                "--disable-default-apps",
+                "--disable-sync",
+                "--no-first-run",
+                "--single-process",
+                "--disable-background-timer-throttling",
+                "--disable-renderer-backgrounding",
+                "--disable-backgrounding-occluded-windows",
+                "--window-size=1280,720"
+        );
+        return browserType.launch(new BrowserType.LaunchOptions()
+                .setHeadless(config.isHeadless())
+                .setArgs(chromiumArgs));
     }
 
     private void captureScreenshot(Page page, TestStep step) {
