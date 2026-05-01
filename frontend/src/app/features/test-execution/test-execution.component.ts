@@ -227,6 +227,7 @@ export class TestExecutionComponent implements OnInit, OnDestroy {
   readonly overallProgress = signal(0);
 
   private statusCheckInterval: ReturnType<typeof setInterval> | null = null;
+  private lastSseEventTime = 0;
 
   ngOnInit(): void {
     this.testId = this.route.snapshot.paramMap.get('testId') || '';
@@ -255,6 +256,7 @@ export class TestExecutionComponent implements OnInit, OnDestroy {
     this.addLog('info', 'Connected to test execution stream');
 
     this.eventSource.addEventListener('status', (event) => {
+      this.lastSseEventTime = Date.now();
       const data: SseStatusEvent = JSON.parse((event as MessageEvent).data);
       if (data.status === 'GENERATING_SCENARIOS') {
         this.phase.set('generating');
@@ -267,12 +269,14 @@ export class TestExecutionComponent implements OnInit, OnDestroy {
     });
 
     this.eventSource.addEventListener('scenarios_generated', (event) => {
+      this.lastSseEventTime = Date.now();
       const data: SseScenariosGeneratedEvent = JSON.parse((event as MessageEvent).data);
       this.totalScenarios.set(data.total);
       this.addLog('success', data.message);
     });
 
     this.eventSource.addEventListener('scenario_start', (event) => {
+      this.lastSseEventTime = Date.now();
       const data: SseScenarioStartEvent = JSON.parse((event as MessageEvent).data);
       this.scenarios.update(list => [...list, {
         index: data.index,
@@ -287,6 +291,7 @@ export class TestExecutionComponent implements OnInit, OnDestroy {
     });
 
     this.eventSource.addEventListener('step_update', (event) => {
+      this.lastSseEventTime = Date.now();
       const data: SseStepUpdateEvent = JSON.parse((event as MessageEvent).data);
       this.scenarios.update(list => list.map(s =>
         s.index === data.scenarioIndex
@@ -297,6 +302,7 @@ export class TestExecutionComponent implements OnInit, OnDestroy {
     });
 
     this.eventSource.addEventListener('scenario_complete', (event) => {
+      this.lastSseEventTime = Date.now();
       const data: SseScenarioCompleteEvent = JSON.parse((event as MessageEvent).data);
       this.scenarios.update(list => list.map(s =>
         s.index === data.index
@@ -313,6 +319,7 @@ export class TestExecutionComponent implements OnInit, OnDestroy {
     });
 
     this.eventSource.addEventListener('completed', (event) => {
+      this.lastSseEventTime = Date.now();
       const data: SseCompletedEvent = JSON.parse((event as MessageEvent).data);
       this.phase.set('completed');
       this.overallProgress.set(100);
@@ -354,7 +361,11 @@ export class TestExecutionComponent implements OnInit, OnDestroy {
         return;
       }
 
-      this.api.healthCheck().subscribe(); // keep-alive
+      const sseRecentlyActive = this.lastSseEventTime > 0
+        && (Date.now() - this.lastSseEventTime) < 30000;
+      if (sseRecentlyActive) {
+        return;
+      }
 
       fetch(`${this.api.getBaseUrl()}/tests/${this.testId}/status`)
         .then(res => res.json())
@@ -368,10 +379,18 @@ export class TestExecutionComponent implements OnInit, OnDestroy {
             if (this.statusCheckInterval) {
               clearInterval(this.statusCheckInterval);
             }
+          } else if (data.status === 'ERROR' && this.phase() !== 'error') {
+            this.phase.set('error');
+            this.statusMessage.set('Test execution failed');
+            this.addLog('error', 'Test execution failed on server');
+            this.eventSource?.close();
+            if (this.statusCheckInterval) {
+              clearInterval(this.statusCheckInterval);
+            }
           }
         })
         .catch(() => { /* polling failure is non-critical */ });
-    }, 3000);
+    }, 20000);
   }
 
   private addLog(type: LogEntry['type'], message: string): void {
