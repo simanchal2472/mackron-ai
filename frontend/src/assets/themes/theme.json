@@ -1,0 +1,15 @@
+{
+  "defaultTheme": "dark",
+  "themes": {
+    "dark": {
+      "bg-primary": "#0f172a",
+      "bg-secondary": "#1e293b",
+      "accent-primary": "#6366f1"
+    },
+    "light": {
+      "bg-primary": "#f8fafc",
+      "bg-secondary": "#ffffff",
+      "accent-primary": "#6366f1"
+    }
+  }
+}

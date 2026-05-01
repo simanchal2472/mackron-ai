@@ -1,0 +1,28 @@
+{
+  "app": {
+    "title": "Mackron AI",
+    "subtitle": "Web Application Testing Agent"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "startTest": "Start New Test",
+    "recentTests": "Recent Tests",
+    "howItWorks": "How It Works"
+  },
+  "testConfig": {
+    "title": "Configure Test",
+    "url": "URL",
+    "username": "Username / Email",
+    "password": "Password",
+    "featureName": "Feature Name",
+    "submit": "Start Test Execution"
+  },
+  "report": {
+    "title": "Test Report",
+    "total": "Total",
+    "passed": "Passed",
+    "failed": "Failed",
+    "errors": "Errors",
+    "passRate": "Pass Rate"
+  }
+}

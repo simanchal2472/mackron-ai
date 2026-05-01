@@ -1,0 +1,8 @@
+server:
+  port: ${PORT:8080}
+
+mackron:
+  playwright:
+    headless: true
+    browser: chromium
+    timeout: 45000
