@@ -115,18 +115,110 @@ import { TestHistoryItem } from '../../core/models/test-report.model';
     .hero {
       position: relative;
       text-align: center;
-      padding: 6rem 2rem 5rem;
+      padding: 7rem 2rem 6rem;
       overflow: hidden;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      transition: background 0.3s ease;
+    }
+    :host-context([data-theme="dark"]) .hero {
+      background:
+        repeating-linear-gradient(
+          90deg,
+          transparent 0px, transparent 55px,
+          rgba(255, 255, 255, 0.02) 55px,
+          rgba(255, 255, 255, 0.04) 57px,
+          rgba(255, 255, 255, 0.02) 59px,
+          transparent 59px
+        ),
+        linear-gradient(180deg, rgba(197, 164, 126, 0.03) 0%, transparent 40%),
+        linear-gradient(0deg, rgba(0, 0, 0, 0.9) 0%, transparent 50%),
+        radial-gradient(ellipse at 30% 20%, rgba(197, 164, 126, 0.07) 0%, transparent 50%),
+        radial-gradient(ellipse at 70% 30%, rgba(197, 164, 126, 0.05) 0%, transparent 45%),
+        linear-gradient(180deg, #0d0d0d 0%, #050505 100%);
+    }
+    :host-context([data-theme="light"]) .hero {
+      background:
+        repeating-linear-gradient(
+          90deg,
+          transparent 0px, transparent 55px,
+          rgba(0, 0, 0, 0.02) 55px,
+          rgba(0, 0, 0, 0.03) 57px,
+          rgba(0, 0, 0, 0.02) 59px,
+          transparent 59px
+        ),
+        linear-gradient(180deg, rgba(154, 123, 91, 0.05) 0%, transparent 40%),
+        linear-gradient(0deg, rgba(250, 248, 245, 0.8) 0%, transparent 50%),
+        radial-gradient(ellipse at 30% 20%, rgba(154, 123, 91, 0.06) 0%, transparent 50%),
+        radial-gradient(ellipse at 70% 30%, rgba(154, 123, 91, 0.04) 0%, transparent 45%),
+        linear-gradient(180deg, #f5f0ea 0%, #ede6dc 100%);
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+    :host-context([data-theme="dark"]) .hero::before {
+      background:
+        repeating-linear-gradient(
+          90deg,
+          transparent 0px, transparent 110px,
+          rgba(255, 255, 255, 0.008) 110px,
+          rgba(255, 255, 255, 0.015) 114px,
+          rgba(255, 255, 255, 0.025) 117px,
+          rgba(255, 255, 255, 0.015) 120px,
+          rgba(255, 255, 255, 0.008) 124px,
+          transparent 124px
+        );
+    }
+    :host-context([data-theme="light"]) .hero::before {
+      background:
+        repeating-linear-gradient(
+          90deg,
+          transparent 0px, transparent 110px,
+          rgba(0, 0, 0, 0.01) 110px,
+          rgba(0, 0, 0, 0.018) 114px,
+          rgba(0, 0, 0, 0.025) 117px,
+          rgba(0, 0, 0, 0.018) 120px,
+          rgba(0, 0, 0, 0.01) 124px,
+          transparent 124px
+        );
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 40%;
+      pointer-events: none;
+    }
+    :host-context([data-theme="dark"]) .hero::after {
+      background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%);
+    }
+    :host-context([data-theme="light"]) .hero::after {
+      background: linear-gradient(to top, rgba(250,248,245,0.6) 0%, transparent 100%);
     }
     .hero-glow {
       position: absolute;
-      top: -40%;
+      top: -20%;
       left: 50%;
       transform: translateX(-50%);
-      width: 600px;
-      height: 400px;
-      background: radial-gradient(ellipse, rgba(197, 164, 126, 0.08) 0%, transparent 70%);
+      width: 800px;
+      height: 500px;
       pointer-events: none;
+      animation: glowPulse 8s ease-in-out infinite;
+    }
+    :host-context([data-theme="dark"]) .hero-glow {
+      background: radial-gradient(ellipse, rgba(197, 164, 126, 0.1) 0%, transparent 65%);
+    }
+    :host-context([data-theme="light"]) .hero-glow {
+      background: radial-gradient(ellipse, rgba(154, 123, 91, 0.08) 0%, transparent 65%);
+    }
+    @keyframes glowPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
     }
     .hero-content { position: relative; z-index: 1; }
     .hero-eyebrow {

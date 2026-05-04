@@ -43,9 +43,41 @@ html {
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: var(--bg-primary);
+  background-attachment: fixed;
   color: var(--text-primary);
   line-height: 1.6;
   letter-spacing: -0.01em;
+  transition: background 0.3s ease;
+}
+
+[data-theme="dark"] body {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0px,
+      transparent 80px,
+      rgba(255, 255, 255, 0.012) 80px,
+      rgba(255, 255, 255, 0.012) 82px
+    ),
+    radial-gradient(ellipse at 25% 0%, rgba(197, 164, 126, 0.05) 0%, transparent 50%),
+    radial-gradient(ellipse at 75% 0%, rgba(197, 164, 126, 0.04) 0%, transparent 45%),
+    radial-gradient(ellipse at 50% 50%, rgba(20, 20, 20, 1) 0%, #000000 100%);
+  background-attachment: fixed;
+}
+
+[data-theme="light"] body {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0px,
+      transparent 80px,
+      rgba(0, 0, 0, 0.018) 80px,
+      rgba(0, 0, 0, 0.018) 82px
+    ),
+    radial-gradient(ellipse at 25% 0%, rgba(154, 123, 91, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 75% 0%, rgba(154, 123, 91, 0.04) 0%, transparent 45%),
+    radial-gradient(ellipse at 50% 50%, #f5f0ea 0%, #faf8f5 100%);
+  background-attachment: fixed;
 }
 
 ::selection {
@@ -171,7 +203,7 @@ button {
 
 .form-input, .form-select {
   padding: 0.85rem 1.15rem;
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--glass);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text-primary);
@@ -183,7 +215,7 @@ button {
   outline: none;
   border-color: var(--accent-primary);
   box-shadow: 0 0 0 3px rgba(197, 164, 126, 0.1);
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--bg-secondary);
 }
 .form-input::placeholder {
   color: var(--text-muted);

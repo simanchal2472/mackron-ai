@@ -33,10 +33,16 @@ import { ThemeService } from '../../../core/services/theme.service';
       position: sticky;
       top: 0;
       z-index: 100;
-      background: rgba(0, 0, 0, 0.6);
       backdrop-filter: blur(24px);
       -webkit-backdrop-filter: blur(24px);
       border-bottom: 1px solid var(--border);
+      transition: background 0.3s ease;
+    }
+    :host-context([data-theme="dark"]) .header {
+      background: rgba(0, 0, 0, 0.6);
+    }
+    :host-context([data-theme="light"]) .header {
+      background: rgba(250, 248, 245, 0.75);
     }
     .header-inner {
       max-width: 1280px;
