@@ -36,17 +36,27 @@ public class PlaywrightRunnerService {
         return playwright;
     }
 
-    private synchronized Browser getSharedBrowser() {
+    private synchronized Browser getBrowser() {
         if (sharedBrowser == null || !sharedBrowser.isConnected()) {
             if (sharedBrowser != null) {
                 try { sharedBrowser.close(); } catch (Exception ignored) {}
+                sharedBrowser = null;
             }
+            log.info("Launching new browser instance");
             sharedBrowser = launchBrowser();
         }
         return sharedBrowser;
     }
 
     public synchronized void closeSharedBrowser() {
+        if (sharedBrowser != null) {
+            try { sharedBrowser.close(); } catch (Exception ignored) {}
+            sharedBrowser = null;
+        }
+    }
+
+    private synchronized void resetBrowser() {
+        log.info("Resetting browser instance after crash");
         if (sharedBrowser != null) {
             try { sharedBrowser.close(); } catch (Exception ignored) {}
             sharedBrowser = null;
@@ -65,7 +75,7 @@ public class PlaywrightRunnerService {
         List<PageElement> elements = new ArrayList<>();
         BrowserContext context = null;
         try {
-            context = getSharedBrowser().newContext();
+            context = getBrowser().newContext();
             Page page = context.newPage();
             page.setDefaultTimeout(config.getTimeout());
             page.navigate(url);
@@ -94,7 +104,7 @@ public class PlaywrightRunnerService {
 
         BrowserContext context = null;
         try {
-            context = getSharedBrowser().newContext();
+            context = getBrowser().newContext();
             Page page = context.newPage();
             page.setDefaultTimeout(config.getTimeout());
 
@@ -130,6 +140,11 @@ public class PlaywrightRunnerService {
             log.error("Scenario '{}' failed: {}", scenario.getName(), e.getMessage());
             scenario.setStatus(TestStatus.ERROR);
             scenario.setErrorMessage(e.getMessage());
+            if (e.getMessage() != null && e.getMessage().contains("Target page, context or browser has been closed")) {
+                log.warn("Browser crashed during scenario '{}', will re-launch on next scenario", scenario.getName());
+                resetBrowser();
+                context = null;
+            }
         } finally {
             if (context != null) {
                 try { context.close(); } catch (Exception ignored) {}
@@ -268,7 +283,6 @@ public class PlaywrightRunnerService {
                 "--disable-default-apps",
                 "--disable-sync",
                 "--no-first-run",
-                "--single-process",
                 "--disable-background-timer-throttling",
                 "--disable-renderer-backgrounding",
                 "--disable-backgrounding-occluded-windows",

@@ -159,12 +159,13 @@ public class TestEngineService {
 
             completeEmitter(testId);
 
+            playwrightRunner.closeSharedBrowser();
+
         } catch (Exception e) {
             log.error("Test execution failed for {}: {}", testId, e.getMessage(), e);
             statusStore.put(testId, "ERROR");
-            sendEvent(testId, "error", Map.of("message", e.getMessage()));
+            sendEvent(testId, "error", Map.of("message", e.getMessage() != null ? e.getMessage() : "Unknown error"));
             completeEmitter(testId);
-        } finally {
             playwrightRunner.closeSharedBrowser();
         }
     }
