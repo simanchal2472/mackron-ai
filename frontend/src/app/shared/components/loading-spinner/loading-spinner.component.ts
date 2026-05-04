@@ -18,17 +18,21 @@ import { Component, ChangeDetectionStrategy, input } from '@angular/core';
       flex-direction: column;
       align-items: center;
       gap: 1rem;
-      padding: 2rem;
+      padding: 2.5rem;
     }
     .spinner {
-      width: 40px;
-      height: 40px;
-      border: 3px solid var(--border);
+      width: 32px;
+      height: 32px;
+      border: 2px solid var(--border);
       border-top-color: var(--accent-primary);
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
     }
-    .message { color: var(--text-secondary); font-size: 0.9rem; }
+    .message {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      font-weight: 400;
+    }
     @keyframes spin { to { transform: rotate(360deg); } }
   `]
 })

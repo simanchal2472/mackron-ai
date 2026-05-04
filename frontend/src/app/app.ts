@@ -27,13 +27,13 @@ import { FooterComponent } from './shared/components/footer/footer.component';
     }
     .main-content {
       flex: 1;
-      padding: 2rem;
+      padding: 2.5rem 2rem;
       max-width: 1280px;
       width: 100%;
       margin: 0 auto;
     }
     @media (max-width: 768px) {
-      .main-content { padding: 1rem; }
+      .main-content { padding: 1.5rem 1rem; }
     }
   `]
 })

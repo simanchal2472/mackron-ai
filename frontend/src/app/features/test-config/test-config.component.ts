@@ -11,14 +11,21 @@ import { TestRequest } from '../../core/models/test-request.model';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="test-config">
-      <h1 class="page-title">Configure Test</h1>
-      <p class="page-subtitle">Provide the target URL, credentials, and feature to test</p>
+      <div class="config-header">
+        <p class="config-eyebrow">Configure</p>
+        <h1 class="config-title">New Test</h1>
+        <p class="config-desc">Provide the target URL, credentials, and feature to test</p>
+      </div>
 
       <form class="config-form" (ngSubmit)="onSubmit()">
+
         <div class="form-section">
-          <h3 class="section-label">Target Application</h3>
+          <div class="section-header">
+            <span class="section-num">01</span>
+            <h3>Target Application</h3>
+          </div>
           <div class="form-group">
-            <label class="form-label" for="url">URL *</label>
+            <label class="form-label" for="url">URL</label>
             <input class="form-input" id="url" type="url"
                    [(ngModel)]="url" name="url"
                    placeholder="https://example.com/login" required />
@@ -26,13 +33,16 @@ import { TestRequest } from '../../core/models/test-request.model';
         </div>
 
         <div class="form-section">
-          <h3 class="section-label">Credentials (Optional)</h3>
+          <div class="section-header">
+            <span class="section-num">02</span>
+            <h3>Credentials <span class="optional">(optional)</span></h3>
+          </div>
           <div class="grid-2">
             <div class="form-group">
               <label class="form-label" for="username">Username / Email</label>
               <input class="form-input" id="username" type="text"
                      [(ngModel)]="username" name="username"
-                     placeholder="testuser@example.com" />
+                     placeholder="testuser&#64;example.com" />
             </div>
             <div class="form-group">
               <label class="form-label" for="password">Password</label>
@@ -44,7 +54,10 @@ import { TestRequest } from '../../core/models/test-request.model';
         </div>
 
         <div class="form-section">
-          <h3 class="section-label">Feature to Test *</h3>
+          <div class="section-header">
+            <span class="section-num">03</span>
+            <h3>Feature to Test</h3>
+          </div>
           <div class="form-group">
             <label class="form-label" for="feature">Feature Name</label>
             <select class="form-select" id="feature" [(ngModel)]="featureName" name="featureName" required>
@@ -60,11 +73,16 @@ import { TestRequest } from '../../core/models/test-request.model';
         </div>
 
         <div class="form-section">
-          <h3 class="section-label">AI Enhancement (Optional)</h3>
+          <div class="section-header">
+            <span class="section-num">04</span>
+            <h3>AI Enhancement <span class="optional">(optional)</span></h3>
+          </div>
           <div class="toggle-row">
             <label class="toggle">
               <input type="checkbox" [(ngModel)]="llmEnabled" name="llmEnabled" />
-              <span class="toggle-slider"></span>
+              <span class="toggle-track">
+                <span class="toggle-thumb"></span>
+              </span>
             </label>
             <span class="toggle-label">Enable LLM-powered test generation</span>
           </div>
@@ -99,6 +117,7 @@ import { TestRequest } from '../../core/models/test-request.model';
           <button type="submit" class="btn btn-primary btn-lg"
                   [disabled]="submitting() || !url || !featureName">
             @if (submitting()) {
+              <span class="btn-spinner"></span>
               Running...
             } @else {
               Start Test Execution
@@ -110,64 +129,136 @@ import { TestRequest } from '../../core/models/test-request.model';
   `,
   styles: [`
     .test-config { max-width: 720px; margin: 0 auto; }
-    .config-form { display: flex; flex-direction: column; gap: 1.5rem; }
+
+    .config-header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+    .config-eyebrow {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--accent-primary);
+      margin-bottom: 0.5rem;
+    }
+    .config-title {
+      font-size: 2.5rem;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      margin-bottom: 0.5rem;
+    }
+    .config-desc {
+      color: var(--text-secondary);
+      font-size: 1rem;
+    }
+
+    .config-form { display: flex; flex-direction: column; gap: 1px; }
+
     .form-section {
       background: var(--bg-secondary);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1.5rem;
+      padding: 2rem;
+      transition: background 0.2s ease;
     }
-    .section-label {
-      font-size: 1rem;
-      font-weight: 700;
-      margin-bottom: 1rem;
-      color: var(--accent-primary);
-    }
-    .toggle-row {
+    .form-section:first-of-type { border-radius: var(--radius) var(--radius) 0 0; }
+    .form-section:last-of-type { border-radius: 0 0 var(--radius) var(--radius); }
+
+    .section-header {
       display: flex;
       align-items: center;
       gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+    .section-num {
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: var(--accent-primary);
+      opacity: 0.4;
+    }
+    .section-header h3 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .optional {
+      color: var(--text-muted);
+      font-weight: 400;
+      font-size: 0.85rem;
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
     }
     .toggle {
       position: relative;
       display: inline-block;
+      cursor: pointer;
+    }
+    .toggle input { position: absolute; opacity: 0; width: 0; height: 0; }
+    .toggle-track {
+      display: block;
       width: 44px;
       height: 24px;
-    }
-    .toggle input { opacity: 0; width: 0; height: 0; }
-    .toggle-slider {
-      position: absolute;
-      cursor: pointer;
-      inset: 0;
       background: var(--bg-tertiary);
       border-radius: 24px;
-      transition: 0.3s;
+      transition: background 0.3s ease;
+      position: relative;
     }
-    .toggle-slider::before {
-      content: '';
+    .toggle-thumb {
       position: absolute;
       width: 18px;
       height: 18px;
       left: 3px;
-      bottom: 3px;
-      background: white;
+      top: 3px;
+      background: var(--text-secondary);
       border-radius: 50%;
-      transition: 0.3s;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .toggle input:checked + .toggle-slider { background: var(--accent-primary); }
-    .toggle input:checked + .toggle-slider::before { transform: translateX(20px); }
-    .toggle-label { color: var(--text-secondary); font-size: 0.9rem; }
-    .llm-config { margin-top: 1rem; }
-    .hint { color: var(--text-muted); font-size: 0.8rem; margin-top: 0.5rem; }
+    .toggle input:checked + .toggle-track {
+      background: var(--accent-primary);
+    }
+    .toggle input:checked + .toggle-track .toggle-thumb {
+      transform: translateX(20px);
+      background: #000;
+    }
+    .toggle-label { color: var(--text-secondary); font-size: 0.875rem; }
+
+    .llm-config { margin-top: 1.25rem; }
+    .hint {
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      margin-top: 0.75rem;
+    }
+
     .error-banner {
       background: var(--danger-bg);
-      color: #fca5a5;
-      padding: 1rem;
+      border: 1px solid rgba(248, 113, 113, 0.15);
+      color: var(--danger);
+      padding: 1rem 1.25rem;
       border-radius: var(--radius-sm);
-      font-size: 0.9rem;
+      font-size: 0.875rem;
     }
-    .form-actions { display: flex; justify-content: center; padding-top: 1rem; }
-    .btn-lg { padding: 1rem 3rem; font-size: 1.05rem; }
+
+    .form-actions {
+      display: flex;
+      justify-content: center;
+      padding-top: 2rem;
+    }
+    .btn-lg {
+      padding: 1rem 3.5rem;
+      font-size: 0.95rem;
+    }
+    .btn-spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(0,0,0,0.2);
+      border-top-color: #000;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
   `]
 })
 export class TestConfigComponent {

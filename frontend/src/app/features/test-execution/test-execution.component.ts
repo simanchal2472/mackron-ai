@@ -34,44 +34,49 @@ interface LogEntry {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="execution-page">
-      <h1 class="page-title">Test Execution</h1>
-      <p class="page-subtitle">Test ID: {{ testId }}</p>
+      <div class="exec-header">
+        <p class="exec-eyebrow">Execution</p>
+        <h1 class="exec-title">Test In Progress</h1>
+        <p class="exec-id">{{ testId }}</p>
+      </div>
 
       <div class="status-banner" [class]="'status-' + phase()">
-        <div class="status-indicator"></div>
-        <span>{{ statusMessage() }}</span>
+        <div class="status-dot"></div>
+        <span class="status-text">{{ statusMessage() }}</span>
       </div>
 
       @if (totalScenarios() > 0) {
         <section class="progress-section">
-          <h2>Progress</h2>
-          <div class="progress-bar-wrapper">
-            <div class="progress-bar">
-              <div class="progress-fill" [style.width.%]="overallProgress()"></div>
-            </div>
-            <span class="progress-text">{{ completedCount() }} / {{ totalScenarios() }} scenarios</span>
+          <div class="progress-header">
+            <span class="progress-label">Progress</span>
+            <span class="progress-count">{{ completedCount() }} / {{ totalScenarios() }}</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" [style.width.%]="overallProgress()"></div>
           </div>
 
           <div class="scenarios-list">
             @for (s of scenarios(); track s.index) {
               <div class="scenario-row" [class]="'row-' + s.status.toLowerCase()">
-                <div class="scenario-status-icon">
+                <div class="scenario-icon">
                   @switch (s.status) {
                     @case ('PASS') { <span class="icon pass">&#10004;</span> }
                     @case ('FAIL') { <span class="icon fail">&#10008;</span> }
                     @case ('ERROR') { <span class="icon error">!</span> }
-                    @case ('RUNNING') { <span class="icon running">&#9654;</span> }
-                    @default { <span class="icon pending">&#8226;</span> }
+                    @case ('RUNNING') { <span class="icon running"></span> }
+                    @default { <span class="icon pending"></span> }
                   }
                 </div>
                 <div class="scenario-info">
                   <span class="scenario-name">{{ s.name }}</span>
-                  <span class="scenario-type badge" [class]="'badge-' + s.type.toLowerCase()">{{ s.type }}</span>
+                  <span class="scenario-type">{{ s.type }}</span>
                 </div>
-                <div class="scenario-steps">{{ s.completedSteps }}/{{ s.totalSteps }} steps</div>
-                @if (s.durationMs > 0) {
-                  <div class="scenario-duration">{{ formatDuration(s.durationMs) }}</div>
-                }
+                <div class="scenario-meta">
+                  <span class="scenario-steps">{{ s.completedSteps }}/{{ s.totalSteps }}</span>
+                  @if (s.durationMs > 0) {
+                    <span class="scenario-duration">{{ formatDuration(s.durationMs) }}</span>
+                  }
+                </div>
               </div>
             }
           </div>
@@ -79,7 +84,12 @@ interface LogEntry {
       }
 
       <section class="log-section">
-        <h2>Live Log</h2>
+        <div class="log-header">
+          <span class="log-label">Live Log</span>
+          @if (phase() === 'running' || phase() === 'generating') {
+            <span class="log-live-dot"></span>
+          }
+        </div>
         <div class="log-container">
           @for (entry of logEntries(); track $index) {
             <div class="log-entry" [class]="'log-' + entry.type">
@@ -103,100 +113,164 @@ interface LogEntry {
   `,
   styles: [`
     .execution-page { max-width: 900px; margin: 0 auto; }
+
+    .exec-header { text-align: center; margin-bottom: 2.5rem; }
+    .exec-eyebrow {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--accent-primary);
+      margin-bottom: 0.5rem;
+    }
+    .exec-title {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.35rem;
+    }
+    .exec-id {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      font-family: 'Consolas', 'Monaco', monospace;
+    }
+
+    /* ── Status Banner ── */
     .status-banner {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
+      gap: 0.85rem;
       padding: 1rem 1.5rem;
-      border-radius: var(--radius);
-      margin-bottom: 2rem;
-      font-weight: 600;
+      border-radius: var(--radius-sm);
+      margin-bottom: 2.5rem;
       background: var(--bg-secondary);
       border: 1px solid var(--border);
     }
-    .status-indicator {
-      width: 12px; height: 12px;
+    .status-dot {
+      width: 10px; height: 10px;
       border-radius: 50%;
       background: var(--text-muted);
+      flex-shrink: 0;
     }
-    .status-generating .status-indicator { background: var(--info); animation: pulse 1.5s infinite; }
-    .status-running .status-indicator { background: var(--warning); animation: pulse 1s infinite; }
-    .status-completed .status-indicator { background: var(--success); }
-    .status-error .status-indicator { background: var(--danger); }
-    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .status-text { font-weight: 500; font-size: 0.9rem; }
+    .status-generating .status-dot { background: var(--info); animation: pulse 1.5s infinite; }
+    .status-running .status-dot { background: var(--accent-primary); animation: pulse 1s infinite; }
+    .status-completed .status-dot { background: var(--success); }
+    .status-error .status-dot { background: var(--danger); }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-    .progress-section { margin-bottom: 2rem; }
-    .progress-section h2, .log-section h2 { font-size: 1.2rem; margin-bottom: 1rem; }
-    .progress-bar-wrapper {
+    /* ── Progress ── */
+    .progress-section { margin-bottom: 2.5rem; }
+    .progress-header {
       display: flex;
+      justify-content: space-between;
       align-items: center;
-      gap: 1rem;
-      margin-bottom: 1rem;
+      margin-bottom: 0.75rem;
+    }
+    .progress-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+    }
+    .progress-count {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--accent-primary);
     }
     .progress-bar {
-      flex: 1;
-      height: 8px;
+      height: 4px;
       background: var(--bg-tertiary);
-      border-radius: 4px;
+      border-radius: 2px;
       overflow: hidden;
+      margin-bottom: 1.5rem;
     }
     .progress-fill {
       height: 100%;
       background: var(--accent-gradient);
-      border-radius: 4px;
-      transition: width 0.3s ease;
+      border-radius: 2px;
+      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .progress-text { color: var(--text-secondary); font-size: 0.9rem; white-space: nowrap; }
 
-    .scenarios-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
+    .scenarios-list { display: flex; flex-direction: column; gap: 1px; background: var(--border); border-radius: var(--radius-sm); overflow: hidden; }
     .scenario-row {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
-      padding: 0.75rem 1rem;
+      gap: 0.85rem;
+      padding: 0.85rem 1.25rem;
       background: var(--bg-secondary);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      font-size: 0.9rem;
+      font-size: 0.875rem;
     }
-    .scenario-row.row-running { border-left: 3px solid var(--warning); }
-    .scenario-row.row-pass { border-left: 3px solid var(--success); }
-    .scenario-row.row-fail { border-left: 3px solid var(--danger); }
-    .icon { font-weight: 700; font-size: 0.9rem; }
+    .scenario-icon { width: 20px; display: flex; align-items: center; justify-content: center; }
+    .icon { font-weight: 700; font-size: 0.8rem; }
     .icon.pass { color: var(--success); }
     .icon.fail { color: var(--danger); }
     .icon.error { color: var(--warning); }
-    .icon.running { color: var(--warning); animation: pulse 1s infinite; }
-    .icon.pending { color: var(--text-muted); }
-    .scenario-info { flex: 1; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
-    .scenario-name { font-weight: 600; }
-    .scenario-type { font-size: 0.7rem; }
-    .badge-positive { background: rgba(34,197,94,0.15); color: var(--success); }
-    .badge-negative { background: rgba(239,68,68,0.15); color: var(--danger); }
-    .badge-boundary { background: rgba(245,158,11,0.15); color: var(--warning); }
-    .badge-edge_case { background: rgba(99,102,241,0.15); color: var(--accent-primary); }
-    .scenario-steps, .scenario-duration { color: var(--text-secondary); font-size: 0.85rem; }
+    .icon.running {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--accent-primary);
+      animation: pulse 1s infinite;
+    }
+    .icon.pending {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--text-muted);
+    }
+    .scenario-info { flex: 1; display: flex; align-items: center; gap: 0.6rem; }
+    .scenario-name { font-weight: 500; }
+    .scenario-type {
+      font-size: 0.65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      padding: 0.15rem 0.5rem;
+      background: rgba(255,255,255,0.03);
+      border-radius: 10px;
+    }
+    .scenario-meta { display: flex; align-items: center; gap: 0.75rem; }
+    .scenario-steps { color: var(--text-muted); font-size: 0.8rem; }
+    .scenario-duration { color: var(--text-muted); font-size: 0.8rem; }
 
+    /* ── Log ── */
+    .log-section { margin-bottom: 2rem; }
+    .log-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+    .log-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+    }
+    .log-live-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--success);
+      animation: pulse 1.5s infinite;
+    }
     .log-container {
       background: var(--bg-secondary);
       border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1rem;
-      max-height: 400px;
+      border-radius: var(--radius-sm);
+      padding: 1rem 1.25rem;
+      max-height: 360px;
       overflow-y: auto;
     }
     .log-entry {
-      padding: 0.3rem 0;
+      padding: 0.25rem 0;
       font-family: 'Consolas', 'Monaco', monospace;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       display: flex;
       gap: 0.75rem;
     }
-    .log-time { color: var(--text-muted); min-width: 80px; }
+    .log-time { color: var(--text-muted); min-width: 75px; font-size: 0.75rem; }
     .log-info .log-msg { color: var(--text-secondary); }
     .log-success .log-msg { color: var(--success); }
     .log-error .log-msg { color: var(--danger); }

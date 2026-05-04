@@ -2,14 +2,16 @@
   "defaultTheme": "dark",
   "themes": {
     "dark": {
-      "bg-primary": "#0f172a",
-      "bg-secondary": "#1e293b",
-      "accent-primary": "#6366f1"
+      "bg-primary": "#000000",
+      "bg-secondary": "#0a0a0a",
+      "bg-tertiary": "#1a1a1a",
+      "accent-primary": "#c5a47e"
     },
     "light": {
-      "bg-primary": "#f8fafc",
+      "bg-primary": "#faf8f5",
       "bg-secondary": "#ffffff",
-      "accent-primary": "#6366f1"
+      "bg-tertiary": "#f0ebe4",
+      "accent-primary": "#9a7b5b"
     }
   }
 }
